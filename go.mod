@@ -2,6 +2,8 @@ module github.com/nayemmmmmmmmmm/stock_scraper
 
 go 1.25.6
 
+require golang.org/x/tools v0.42.0
+
 require (
 	github.com/PuerkitoBio/goquery v1.11.0 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect

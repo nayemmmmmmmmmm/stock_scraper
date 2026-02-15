@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/gocolly/colly"
 )
@@ -10,7 +12,6 @@ import (
 type Stock struct {
 	company, price, change string
 }
-
 
 func main() {
 	ticker := []string{
@@ -25,31 +26,30 @@ func main() {
 		"DIS",
 		"MMM",
 		"INTC",
-  		"AXP",
-    	"AAPL",
-    	"BA",
-    	"CSCO",
-    	"GS",
-    	"JPM",
-    	"CRM",
-    	"VZ",
+		"AXP",
+		"AAPL",
+		"BA",
+		"CSCO",
+		"GS",
+		"JPM",
+		"CRM",
+		"VZ",
 	}
 
 	stocks := []Stock{}
 
 	c := colly.NewCollector()
 
-	c.OnRequest(func (r *colly.Request) {
+	c.OnRequest(func(r *colly.Request) {
 		fmt.Println("Visitng:", r.URL)
 	})
 
-	c.OnError(func (_ *colly.Response, err error)  {
+	c.OnError(func(_ *colly.Response, err error) {
 		log.Println("Something went wrong: ", err)
 	})
 
-
 	c.OnHTML("div#quote-header-info", func(e *colly.HTMLElement) {
-		
+
 		stock := Stock{}
 
 		stock.company = e.ChildText("h1")
@@ -61,12 +61,28 @@ func main() {
 
 		stocks = append(stocks, stock)
 	})
-	c.Wait()
 
 	for _, t := range ticker {
 		c.Visit("https://finance.yahoo.com/quote/" + t + "/")
 	}
+	c.Wait()
 
-	
+	fmt.Println(stocks)
+
+	file, err := os.Create("stocks.csv")
+	if err != nil {
+		log.Fatalln("Failed to create output csv file", err)
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	headers := []string{"Company", "Price", "Change"}
+
+	writer.Write(headers)
+	for _, stock := range stocks {
+		record := []string{stock.company, stock.price, stock.change}
+		writer.Write(record)
+	}
+	defer writer.Flush()
 
 }
